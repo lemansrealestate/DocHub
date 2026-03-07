@@ -5,16 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>DocHub | LÈMANS</title>
     
-    <!-- Apple / iOS Safari Optimierungen für Dynamic Island & Status Bar -->
+    <!-- Apple / iOS Safari Optimierungen -->
     <meta name="theme-color" content="#0f1822">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="DocHub">
     
-    <!-- Favicon für normale Browser -->
-    <link rel="icon" href="favicon_doc.svg" type="image/svg+xml">
+    <!-- VERHINDERT, DASS APPLE DIE IBAN ODER TELEFONNUMMERN BLAU UNTERSTREICHT -->
+    <meta name="format-detection" content="telephone=no, date=no, email=no, address=no">
     
-    <!-- Apple Touch Icon für den iOS Home-Bildschirm (Benötigt zwingend eine PNG-Datei!) -->
+    <!-- Favicon -->
+    <link rel="icon" href="favicon_doc.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     
     <!-- Hanken Grotesk Font laden -->
@@ -36,7 +37,7 @@
             color: var(--brand-color);
             background-color: var(--brand-color); 
             overflow-x: hidden;
-            /* Ermöglicht die Nutzung von CSS Countern für die absolut sicheren Seitenzahlen */
+            /* Native CSS Seitenzahlen aktivieren */
             counter-reset: print-page;
         }
 
@@ -120,9 +121,12 @@
             width: calc(100% - 40px);
             background: var(--brand-color); padding: 10px 15px; border-radius: 8px;
             display: flex; flex-wrap: wrap; gap: 10px; z-index: 1000;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); align-items: center; justify-content: flex-start; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+            align-items: center; 
+            justify-content: flex-start; 
+            align-content: flex-start; /* Eleganter bei Umbruch */
         }
-        .toolbar-group { display: flex; gap: 5px; align-items: center; }
+        .toolbar-group { display: flex; gap: 5px; align-items: center; flex-wrap: nowrap; }
         .toolbar-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.3); margin: 0 5px; }
         .toolbar select, .toolbar button {
             background: white; color: var(--brand-color); border: none; padding: 0 12px; height: 34px; 
@@ -176,16 +180,14 @@
             }
         }
 
-        /* --- ZOOM WRAPPER --- 
-           Dieser Wrapper fängt iOS Skalierungs-Bugs ab! Das Dokument innen bleibt immer exakt 210mm groß.
-        */
+        /* --- ZOOM WRAPPER --- */
         #zoom-wrapper {
             transform-origin: top center;
             transition: transform 0.2s ease;
-            width: 210mm; /* Sichert die Dimensionen für den Browser ab */
+            width: 210mm; 
         }
 
-        /* --- Endlos-Papier Layout (Seamless Editor) --- */
+        /* --- Endlos-Papier Layout --- */
         .document-wrapper {
             background-color: white; 
             width: 210mm; 
@@ -193,21 +195,15 @@
             position: relative;
             box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
             box-sizing: border-box;
-            
-            /* FALTMARKEN DIREKT ALS SVG-HINTERGRUND (Damit sie krisensicher auf jeder Seite gedruckt werden) */
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='210mm' height='297mm' viewBox='0 0 210 297'%3e%3cline x1='0' y1='105' x2='4' y2='105' stroke='%230f1822' stroke-width='0.5'/%3e%3cline x1='0' y1='148.5' x2='6' y2='148.5' stroke='%230f1822' stroke-width='0.5'/%3e%3cline x1='0' y1='210' x2='4' y2='210' stroke='%230f1822' stroke-width='0.5'/%3e%3c/svg%3e");
-            background-repeat: repeat-y;
-            background-size: 210mm 297mm;
         }
 
-        /* Unabhängige, editierbare Felder */
         [contenteditable="true"] { 
             outline: none; border-radius: 3px; transition: background-color 0.2s; padding: 2px; margin: -2px;
         }
         [contenteditable="true"]:hover { background-color: #f8fafe; box-shadow: 0 0 0 1px #cbd5e1; }
         [contenteditable="true"]:focus { background-color: #fff; box-shadow: 0 0 0 2px #3b82f6; }
 
-        /* CI Zwang für alle eingefügten Inhalte */
+        /* CI Zwang für eingefügte Inhalte */
         [contenteditable="true"] * {
             font-family: 'Hanken Grotesk', sans-serif !important; color: var(--brand-color) !important; background-color: transparent !important;
         }
@@ -216,19 +212,24 @@
         .anschriftzone .ruecksendeangabe * { font-size: 8pt !important; }
 
 
-        /* --- DIE NEUE BULLETPROOF TABELLEN-ARCHITEKTUR --- */
+        /* --- BULLETPROOF TABELLEN-ARCHITEKTUR (Löst alle iOS Safari Bugs) --- */
         .content-table { 
             width: 100%; border-collapse: collapse; border-spacing: 0;
-            height: 100%; min-height: 297mm; /* Zwingt die Tabelle bis zum Blattrand */
+            height: 100%;
         }
         .content-table td { padding: 0; }
 
-        /* Kopfzeile (Wird nativ vom Browser auf JEDER Seite wiederholt) */
+        /* KOPFZEILE (Hier liegen nun auch die Faltmarken, damit sie 100% sicher auf jeder Seite landen) */
         .print-header-cell { height: 45mm; vertical-align: top; position: relative; }
         .print-header { position: absolute; top: 12mm; left: 0; width: 100%; text-align: center; }
         .print-header img { max-width: 150mm; max-height: 25mm; object-fit: contain; }
 
-        /* Fußzeile (Wird nativ vom Browser auf JEDER Seite unten wiederholt) */
+        /* Faltmarken - absolut relativ zur wiederholenden Kopfzeile positioniert */
+        .lochmarke { position: absolute; left: 0; top: 148.5mm; width: 5mm; border-top: 1px solid var(--brand-color); display: none; }
+        .faltmarke1 { position: absolute; left: 0; top: 105mm; width: 3mm; border-top: 1px solid var(--brand-color); display: none; }
+        .faltmarke2 { position: absolute; left: 0; top: 210mm; width: 3mm; border-top: 1px solid var(--brand-color); display: none; }
+
+        /* FUSSZEILE */
         .print-footer-cell { height: 50mm; vertical-align: bottom; position: relative; }
         .print-footer { position: absolute; bottom: 15mm; left: 25mm; right: 20mm; }
         .footer-content {
@@ -236,7 +237,7 @@
             font-size: 7.5pt; line-height: 1.3; text-align: center;
         }
         
-        /* CSS Native Seitenzahlen (Sicher vor JS Bugs) */
+        /* CSS Native Seitenzahlen (Werden vom Browser pro Seite generiert, kein JS-Fehler möglich) */
         .page-number-container {
             position: absolute; bottom: 38mm; right: 20mm; text-align: right; font-size: 8pt; color: var(--brand-color);
         }
@@ -245,29 +246,23 @@
             content: "Seite " counter(print-page);
         }
 
-        /* Hauptbereich Container */
+        /* HAUPTTEIL */
         .main-content-cell { height: 100%; vertical-align: top; position: relative; }
 
-        /* Strenge DIN 5008 Form B Anschriftzone (Sitzt nun im Text-Körper) */
-        /* top: 0mm bedeutet hier = 45mm vom echten Seitenrand, weil die Kopfzeile 45mm verbraucht! */
         .anschriftzone { position: absolute; left: 20mm; top: 0mm; width: 85mm; height: 45mm; overflow: hidden; }
         .ruecksendeangabe { height: 5mm; font-size: 8pt; line-height: 5mm; white-space: nowrap; overflow: hidden; }
         .vermerkzone { height: 12.7mm; font-size: 10pt; line-height: 1.2; }
         .empfaenger { height: 27.3mm; font-size: 11pt; line-height: 1.2; }
 
-        /* Informationsblock */
         .infoblock { position: absolute; left: 125mm; top: 5mm; width: 75mm; font-size: 9.5pt; line-height: 1.4; }
         .info-grid { display: grid; grid-template-columns: max-content 1fr; column-gap: 4mm; row-gap: 2px; }
         .info-grid > div:nth-child(even) { text-align: left; }
         .info-margin-top { margin-top: 4mm; }
         .user-email, .user-web, .user-phone, .user-mobile, .user-name { white-space: nowrap; }
 
-        /* Abstandshalter, der den echten Text unterhalb der Adresse starten lässt */
         .first-page-spacer { height: 60mm; width: 100%; } 
-
         .main-content { padding-left: 25mm; padding-right: 20mm; font-size: 11pt; line-height: 1.3; }
 
-        /* Textblöcke */
         .betreff-box { font-weight: 700; margin-bottom: 8.46mm; }
         .anrede-box { margin-bottom: 4.23mm; }
         .textteil-box { margin-bottom: 8.46mm; min-height: 20mm; }
@@ -276,7 +271,6 @@
         .unterschrift-box { margin-bottom: 5mm; break-inside: avoid; } 
         .anlagen-box { font-weight: 700; margin-top: 5mm; margin-bottom: 20mm; break-inside: avoid; }
 
-        /* --- Unterschriften-Tool --- */
         .signature-tool {
             display: inline-block; padding: 12px 16px; background: #f1f5f9; border: 1px dashed #94a3b8;
             border-radius: 8px; cursor: pointer; font-size: 10pt; font-weight: 700; margin-bottom: 4mm;
@@ -291,29 +285,42 @@
         }
         #sig-remove:hover { background: #ef4444; color: white; }
 
-        /* --- STRIKTE DRUCK EINSTELLUNGEN FÜR IOS --- */
+        /* --- STRIKTE DRUCK EINSTELLUNGEN (Löst alle iOS & "Vergessen"-Bugs) --- */
         @media print {
-            @page { size: A4; margin: 0; }
+            /* Entfernt Browser-URLs und Datum in den Ecken */
+            @page { size: A4; margin: 0 !important; }
             
-            /* Weißer Background, keine Ränder */
-            html, body { background: white !important; padding: 0 !important; margin: 0 !important; }
+            /* Sichert die Farbausgabe ab (keine grauen Boxen) */
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            
+            html, body { 
+                background: white !important; padding: 0 !important; margin: 0 !important; 
+                width: 210mm !important; height: auto !important; 
+            }
             .toolbar, .no-print, #login-container { display: none !important; }
-            #app-container { display: block !important; padding: 0 !important; background: white !important; }
             
-            /* SCHUTZ VOR IOS BUG: Zoom-Wrapper wird im CSS hart resetted! */
-            #zoom-wrapper { transform: none !important; margin: 0 !important; width: 100% !important; }
+            #app-container { display: block !important; padding: 0 !important; background: white !important; min-height: 0 !important; }
+            
+            /* NATIVES CSS-RESETE DES ZOOMS (Löst den "Vergessen"-Bug, da kein JS mehr nötig ist!) */
+            #zoom-wrapper { transform: none !important; margin: 0 !important; width: 210mm !important; }
             
             .document-wrapper { 
                 box-shadow: none !important; margin: 0 !important; width: 210mm !important;
+                min-height: 0 !important; /* Verhindert die leere zweite Seite! */
             }
-            [contenteditable="true"]:hover { background-color: transparent !important; box-shadow: none !important; }
             
-            /* Thead und Tfoot übernehmen die automatische, fehlerfreie Wiederholung */
+            /* Entfernt Editier-Hintergründe restlos */
+            [contenteditable] { background: transparent !important; border: none !important; box-shadow: none !important; }
+            
+            /* Faltmarken im Druck anzeigen */
+            .lochmarke, .faltmarke1, .faltmarke2 { display: block !important; }
+            
+            /* Thead und Tfoot zwingend auf Native Wiederholung setzen */
             thead { display: table-header-group; }
             tfoot { display: table-footer-group; }
             
-            /* Verhindert hartes Zusammenquetschen von Absätzen bei Platzmangel in iOS Safari */
             p, .textteil-box, .gruss-box { break-inside: auto !important; page-break-inside: auto !important; }
+            .betreff-box, .anrede-box, .gruss-box, .unterschrift-box, .anlagen-box { break-inside: avoid; page-break-inside: avoid; }
         }
     </style>
 </head>
@@ -399,16 +406,21 @@
             </div>
         </div>
 
-        <!-- --- DOKUMENT ARCHITEKTUR (Sicher für iOS) --- -->
-        <!-- Der Zoom greift nur noch auf diesen Wrapper, das Dokument selbst bleibt sauber! -->
+        <!-- --- DOKUMENT ARCHITEKTUR --- -->
+        <!-- Der Zoom greift nur noch hier, das Dokument bleibt sauber! -->
         <div id="zoom-wrapper">
             <div class="document-wrapper" id="docWrapper">
                 
                 <table class="content-table">
-                    <!-- KOPFZEILE (Wird auf jeder Druck-Seite vom Browser nativ ganz oben angezeigt) -->
+                    <!-- KOPFZEILE (Druckt sich nativ auf jede PDF Seite) -->
                     <thead class="print-header-section">
                         <tr>
                             <td class="print-header-cell">
+                                <!-- Faltmarken sind nun im Thead verankert und wiederholen sich zu 100% fehlerfrei auf Folgeseiten -->
+                                <div class="lochmarke"></div>
+                                <div class="faltmarke1"></div>
+                                <div class="faltmarke2"></div>
+                                
                                 <div class="print-header">
                                     <img src="dark.png" alt="LÈMANS Logo" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block';">
                                     <div id="logo-fallback" style="display:none; font-size:24pt; font-weight:700; letter-spacing: 2px;">LÈMANS</div>
@@ -422,7 +434,6 @@
                         <tr>
                             <td class="main-content-cell">
                                 
-                                <!-- Absolut positioniert relativ zum Start des TBody (Nur auf der ersten Seite!) -->
                                 <div class="anschriftzone">
                                     <div class="ruecksendeangabe">
                                         <span contenteditable="true">LÈMANS Real Estate GmbH · Großer Burstah 44 · 20457 Hamburg</span>
@@ -444,7 +455,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Abstandshalter, damit der Text erst unter der Adresse anfängt -->
                                 <div class="first-page-spacer"></div>
 
                                 <!-- Echter Textfluss -->
@@ -455,8 +465,8 @@
                                     
                                     <div class="textteil-box" contenteditable="true">
                                         <p>Klicken Sie in die jeweiligen Blöcke, um diese unabhängig voneinander zu überschreiben.</p>
-                                        <p>Dies ist das ultimative Update: Die Architektur des Dokuments wurde auf eine komplett native HTML-Tabellen-Struktur (Thead/Tfoot) umgestellt. Dadurch wird der berüchtigte iOS Safari Druck-Bug vollumfänglich umgangen.</p>
-                                        <p>Kopfzeile, Fußzeile und die Seitenzahlen werden vom iPhone nun fehlerfrei auf jede gedruckte Seite (PDF) geworfen. Auch das Quetschen und Überschreiben des Textes ist behoben, da der Zoom isoliert vom Dokument gesteuert wird.</p>
+                                        <p>Das Dokument generiert bei kurzen Texten nun keine zweite Seite mehr. Die iOS-Ränder, URLs am unteren Rand und der "Graue-Box-Bug" in der PDF-Ausgabe wurden durch strenge CSS-Druck-Befehle komplett eliminiert.</p>
+                                        <p>Die Faltmarken sind nun direkt im Kopfteil der Tabelle verankert. Da der Browser Tabellenköpfe beim Drucken nativ auf jede Folgeseite kopiert, werden auch die Faltmarken ab sofort zu 100% fehlerfrei wiederholt. Das problematische Javascript für den Druck-Layout-Umbau wurde restlos entfernt, was den "Vergessen"-Bug nach dem Abbrechen ausschließt.</p>
                                     </div>
                                     
                                     <div class="gruss-box" contenteditable="true">
@@ -486,10 +496,11 @@
                         </tr>
                     </tbody>
                     
-                    <!-- FUSSZEILE (Wird auf jeder Druck-Seite vom Browser nativ unten angezeigt) -->
+                    <!-- FUSSZEILE (Druckt sich nativ auf jede PDF Seite) -->
                     <tfoot class="print-footer-section">
                         <tr>
                             <td class="print-footer-cell">
+                                <!-- CSS Seitenzahl Zähler! Garantiert Fehlerfrei. -->
                                 <div class="page-number-container">
                                     <span class="css-page-number"></span><span class="total-pages"></span>
                                 </div>
@@ -518,7 +529,6 @@
             if (currentZoom < 0.2) currentZoom = 0.2;
             if (currentZoom > 3.0) currentZoom = 3.0;
             
-            // Der Zoom wird NUR auf den äußeren Wrapper angewendet! 
             const zoomWrapper = document.getElementById('zoom-wrapper');
             zoomWrapper.style.transform = `scale(${currentZoom})`;
             
@@ -582,6 +592,7 @@
                     img.src = event.target.result;
                     document.getElementById('sig-wrapper').style.display = 'inline-block';
                     document.querySelector('.signature-tool').style.display = 'none'; 
+                    updatePageCount();
                 }
                 reader.readAsDataURL(file);
             }
@@ -592,6 +603,7 @@
             document.getElementById('sig-image').src = '';
             document.getElementById('sig-wrapper').style.display = 'none';
             document.querySelector('.signature-tool').style.display = 'inline-block';
+            updatePageCount();
         }
 
         // --- Sprache ---
@@ -617,6 +629,7 @@
             document.querySelector('.lbl-ust').innerText = t.ust;
             document.querySelector('.lbl-gf').innerText = t.gf;
             document.querySelector('.lbl-bank').innerText = t.bank;
+            updatePageCount();
         }
 
         // --- Mandanten Verwaltung ---
@@ -725,28 +738,38 @@
                     const paragraphs = text.split('\n').filter(t => t.trim() !== '').map(t => `<p>${t}</p>`).join('');
                     document.execCommand('insertHTML', false, paragraphs);
                 }
+                updatePageCount();
             }
         });
 
-        // --- NEUE SICHERE DRUCK BERECHNUNG ---
-        window.addEventListener('beforeprint', () => {
-            // Die Höhe der Tabelle lässt sich nun gefahrlos auslesen, 
-            // da der Zoom nur auf den Wrapper (und nicht auf die Tabelle) wirkt!
-            const table = document.querySelector('.content-table');
-            const totalHeight = table.scrollHeight;
-            const totalPages = Math.max(1, Math.ceil(totalHeight / 1122)); 
-            
-            const lang = document.getElementById('langSelect').value;
-            const t = i18n[lang];
+        // --- SILENT PAGE COUNT (Verhindert den Forget Bug) ---
+        // Das Script misst nun sanft im Hintergrund bei Tastenschlägen und manipuliert NICHTS am Druck-Layout.
+        let countTimeout;
+        function updatePageCount() {
+            clearTimeout(countTimeout);
+            countTimeout = setTimeout(() => {
+                const table = document.querySelector('.content-table');
+                // Die Tabelle bleibt in ihrer reinen Form unskaliert (Zoom greift nur außen). Wir können sicher messen:
+                const totalPages = Math.max(1, Math.ceil(table.scrollHeight / 1122)); 
+                
+                const lang = document.getElementById('langSelect').value;
+                const t = i18n[lang];
+                
+                document.querySelectorAll('.total-pages').forEach(el => {
+                    el.innerText = `${t.von}${totalPages}`;
+                });
+            }, 300); // 300ms Debounce
+        }
 
-            // Wir fügen nur den Text " von X" in die dafür vorgesehene Span ein.
-            // Die "Seite 1, 2, 3" Zählung übernimmt das extrem robuste CSS-Counter-System automatisch pro Seite.
-            document.querySelectorAll('.total-pages').forEach(el => {
-                el.innerText = `${t.von}${totalPages}`;
-            });
+        // Messe Seitenanzahl bei Texteingabe
+        document.addEventListener('input', (e) => {
+            if (e.target.closest('[contenteditable="true"]')) {
+                updatePageCount();
+            }
         });
 
         renderUserDropdown();
+        updatePageCount(); // Initiale Messung
     </script>
 </body>
 </html>
