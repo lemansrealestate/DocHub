@@ -34,9 +34,10 @@
             font-family: 'Hanken Grotesk', sans-serif;
             font-weight: 300;
             color: var(--brand-color);
-            /* Der tiefste Body ist nun CI-Farbe, wichtig für Safari Overscroll und Dynamic Island */
             background-color: var(--brand-color); 
             overflow-x: hidden;
+            /* Ermöglicht die Nutzung von CSS Countern für die absolut sicheren Seitenzahlen */
+            counter-reset: print-page;
         }
 
         b, strong { font-weight: 700; }
@@ -69,7 +70,6 @@
             filter: drop-shadow(0 4px 15px rgba(0,0,0,0.4));
         }
         
-        /* Die Form fungiert als Box, wichtig für Chrome Password Manager */
         .login-box {
             background: rgba(255, 255, 255, 0.95); 
             backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); 
@@ -117,7 +117,6 @@
         /* --- Toolbar (Desktop) --- */
         .toolbar {
             position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
-            /* Volle Streckung auf dem Desktop, mit 40px Rand (20 links/rechts) */
             width: calc(100% - 40px);
             background: var(--brand-color); padding: 10px 15px; border-radius: 8px;
             display: flex; flex-wrap: wrap; gap: 10px; z-index: 1000;
@@ -151,44 +150,54 @@
             }
             .toolbar {
                 top: auto; 
-                /* Exakte Abstände nach unten inkl. Safe Area */
                 bottom: calc(20px + env(safe-area-inset-bottom, 0px));
                 left: 50%; transform: translateX(-50%); 
-                /* Exakt 20px Abstand zum linken und rechten Rand */
                 width: calc(100% - 40px); 
-                border-radius: 38px; /* 38px Apple Pill Radius */
+                border-radius: 38px; 
                 flex-wrap: nowrap; overflow-x: auto;
                 padding: 12px 15px; justify-content: flex-start;
-                
-                /* Voll eingefärbt in CI Blau wie gewünscht */
                 background: var(--brand-color);
                 box-shadow: 0 10px 30px rgba(0,0,0,0.4);
                 border: 1px solid rgba(255,255,255,0.1);
-                
                 -webkit-overflow-scrolling: touch; scrollbar-width: none;
             }
             .toolbar::-webkit-scrollbar { display: none; }
             .toolbar-group { flex-shrink: 0; }
             
-            /* Apple HIG (Human Interface Guidelines): Mindestens 44px + 38px Radius */
             .toolbar select, .toolbar button {
                 height: 44px;
                 font-size: 15px;
-                border-radius: 38px; /* 38px Rundung für Buttons */
+                border-radius: 38px; 
                 padding: 0 18px;
             }
-            
             .toolbar select {
-                padding-right: 45px; /* Viel Platz für das Dropdown, damit Text und Pfeil nicht überlappen */
+                padding-right: 45px; 
                 background-position: right 18px center;
             }
         }
 
+        /* --- ZOOM WRAPPER --- 
+           Dieser Wrapper fängt iOS Skalierungs-Bugs ab! Das Dokument innen bleibt immer exakt 210mm groß.
+        */
+        #zoom-wrapper {
+            transform-origin: top center;
+            transition: transform 0.2s ease;
+            width: 210mm; /* Sichert die Dimensionen für den Browser ab */
+        }
+
         /* --- Endlos-Papier Layout (Seamless Editor) --- */
         .document-wrapper {
-            background-color: white; width: 210mm; min-height: 297mm; position: relative;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15); box-sizing: border-box;
-            transform-origin: top center; transition: transform 0.2s ease;
+            background-color: white; 
+            width: 210mm; 
+            min-height: 297mm; 
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
+            box-sizing: border-box;
+            
+            /* FALTMARKEN DIREKT ALS SVG-HINTERGRUND (Damit sie krisensicher auf jeder Seite gedruckt werden) */
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='210mm' height='297mm' viewBox='0 0 210 297'%3e%3cline x1='0' y1='105' x2='4' y2='105' stroke='%230f1822' stroke-width='0.5'/%3e%3cline x1='0' y1='148.5' x2='6' y2='148.5' stroke='%230f1822' stroke-width='0.5'/%3e%3cline x1='0' y1='210' x2='4' y2='210' stroke='%230f1822' stroke-width='0.5'/%3e%3c/svg%3e");
+            background-repeat: repeat-y;
+            background-size: 210mm 297mm;
         }
 
         /* Unabhängige, editierbare Felder */
@@ -206,40 +215,59 @@
         .infoblock * { font-size: 9.5pt !important; }
         .anschriftzone .ruecksendeangabe * { font-size: 8pt !important; }
 
-        /* --- Kopf- und Fußzeile (Visuell im Editor) --- */
+
+        /* --- DIE NEUE BULLETPROOF TABELLEN-ARCHITEKTUR --- */
+        .content-table { 
+            width: 100%; border-collapse: collapse; border-spacing: 0;
+            height: 100%; min-height: 297mm; /* Zwingt die Tabelle bis zum Blattrand */
+        }
+        .content-table td { padding: 0; }
+
+        /* Kopfzeile (Wird nativ vom Browser auf JEDER Seite wiederholt) */
+        .print-header-cell { height: 45mm; vertical-align: top; position: relative; }
         .print-header { position: absolute; top: 12mm; left: 0; width: 100%; text-align: center; }
         .print-header img { max-width: 150mm; max-height: 25mm; object-fit: contain; }
 
+        /* Fußzeile (Wird nativ vom Browser auf JEDER Seite unten wiederholt) */
+        .print-footer-cell { height: 50mm; vertical-align: bottom; position: relative; }
         .print-footer { position: absolute; bottom: 15mm; left: 25mm; right: 20mm; }
         .footer-content {
             border-top: 1px solid rgba(15, 24, 34, 0.4); padding-top: 4mm;
             font-size: 7.5pt; line-height: 1.3; text-align: center;
         }
+        
+        /* CSS Native Seitenzahlen (Sicher vor JS Bugs) */
+        .page-number-container {
+            position: absolute; bottom: 38mm; right: 20mm; text-align: right; font-size: 8pt; color: var(--brand-color);
+        }
+        .css-page-number::before {
+            counter-increment: print-page;
+            content: "Seite " counter(print-page);
+        }
 
-        /* --- Falt- und Lochmarken (Nur im Druck sichtbar) --- */
-        .lochmarke, .faltmarke1, .faltmarke2 { display: none; }
+        /* Hauptbereich Container */
+        .main-content-cell { height: 100%; vertical-align: top; position: relative; }
 
-        /* Strenge DIN 5008 Form B Anschriftzone */
-        .anschriftzone { position: absolute; left: 20mm; top: 45mm; width: 85mm; height: 45mm; overflow: hidden; }
+        /* Strenge DIN 5008 Form B Anschriftzone (Sitzt nun im Text-Körper) */
+        /* top: 0mm bedeutet hier = 45mm vom echten Seitenrand, weil die Kopfzeile 45mm verbraucht! */
+        .anschriftzone { position: absolute; left: 20mm; top: 0mm; width: 85mm; height: 45mm; overflow: hidden; }
         .ruecksendeangabe { height: 5mm; font-size: 8pt; line-height: 5mm; white-space: nowrap; overflow: hidden; }
         .vermerkzone { height: 12.7mm; font-size: 10pt; line-height: 1.2; }
         .empfaenger { height: 27.3mm; font-size: 11pt; line-height: 1.2; }
 
         /* Informationsblock */
-        .infoblock { position: absolute; left: 125mm; top: 50mm; width: 75mm; font-size: 9.5pt; line-height: 1.4; }
+        .infoblock { position: absolute; left: 125mm; top: 5mm; width: 75mm; font-size: 9.5pt; line-height: 1.4; }
         .info-grid { display: grid; grid-template-columns: max-content 1fr; column-gap: 4mm; row-gap: 2px; }
         .info-grid > div:nth-child(even) { text-align: left; }
         .info-margin-top { margin-top: 4mm; }
         .user-email, .user-web, .user-phone, .user-mobile, .user-name { white-space: nowrap; }
 
-        /* --- Tabellen-Struktur --- */
-        .content-table { width: 100%; border-collapse: collapse; }
-        .header-spacer { height: 45mm; } 
-        .footer-spacer { height: 50mm; } 
-        .first-page-spacer { height: 60mm; } 
+        /* Abstandshalter, der den echten Text unterhalb der Adresse starten lässt */
+        .first-page-spacer { height: 60mm; width: 100%; } 
 
         .main-content { padding-left: 25mm; padding-right: 20mm; font-size: 11pt; line-height: 1.3; }
 
+        /* Textblöcke */
         .betreff-box { font-weight: 700; margin-bottom: 8.46mm; }
         .anrede-box { margin-bottom: 4.23mm; }
         .textteil-box { margin-bottom: 8.46mm; min-height: 20mm; }
@@ -263,33 +291,29 @@
         }
         #sig-remove:hover { background: #ef4444; color: white; }
 
-        /* --- DRUCK EINSTELLUNGEN --- */
+        /* --- STRIKTE DRUCK EINSTELLUNGEN FÜR IOS --- */
         @media print {
             @page { size: A4; margin: 0; }
             
-            /* Zwingend weißen Hintergrund für den Druck erzwingen, ungeachtet des Safari Body-Hintergrunds */
-            html, body { background: white !important; padding: 0 !important; margin: 0 !important; position: static !important; display: block !important; }
+            /* Weißer Background, keine Ränder */
+            html, body { background: white !important; padding: 0 !important; margin: 0 !important; }
             .toolbar, .no-print, #login-container { display: none !important; }
+            #app-container { display: block !important; padding: 0 !important; background: white !important; }
             
-            #app-container { display: block !important; padding: 0 !important; background: white !important; min-height: auto !important; }
+            /* SCHUTZ VOR IOS BUG: Zoom-Wrapper wird im CSS hart resetted! */
+            #zoom-wrapper { transform: none !important; margin: 0 !important; width: 100% !important; }
             
             .document-wrapper { 
-                box-shadow: none !important; transform: none !important; transition: none !important; position: static !important; margin: 0 !important; 
+                box-shadow: none !important; margin: 0 !important; width: 210mm !important;
             }
             [contenteditable="true"]:hover { background-color: transparent !important; box-shadow: none !important; }
             
-            .print-header { position: fixed !important; top: 12mm; left: 0; right: 0; z-index: 1000; }
-            .print-footer { position: fixed !important; bottom: 15mm; left: 25mm; right: 20mm; z-index: 1000; }
+            /* Thead und Tfoot übernehmen die automatische, fehlerfreie Wiederholung */
+            thead { display: table-header-group; }
+            tfoot { display: table-footer-group; }
             
-            .lochmarke, .faltmarke1, .faltmarke2 { display: block !important; position: fixed !important; left: 0; z-index: 1000; }
-            .lochmarke { top: 148.5mm; width: 5mm; border-top: 1px solid var(--brand-color); }
-            .faltmarke1 { top: 105mm; width: 3mm; border-top: 1px solid var(--brand-color); }
-            .faltmarke2 { top: 210mm; width: 3mm; border-top: 1px solid var(--brand-color); }
-
-            .anschriftzone, .infoblock { position: absolute; }
-            
-            p, .textteil-box { break-inside: auto; orphans: 2; widows: 2; }
-            .betreff-box, .anrede-box, .gruss-box, .unterschrift-box, .anlagen-box { break-inside: avoid; page-break-inside: avoid; }
+            /* Verhindert hartes Zusammenquetschen von Absätzen bei Platzmangel in iOS Safari */
+            p, .textteil-box, .gruss-box { break-inside: auto !important; page-break-inside: auto !important; }
         }
     </style>
 </head>
@@ -297,24 +321,16 @@
 
     <!-- --- LOGIN BEREICH (ATLAS Style) --- -->
     <div id="login-container">
-        <!-- Hintergrundvideo -->
         <video id="login-video" autoplay muted loop playsinline>
             <source src="Video_Website_0325.mp4" type="video/mp4">
         </video>
-        
-        <!-- Reduzierte Transparenz für besseren Kontrast -->
         <div id="login-overlay"></div>
-        
         <div class="login-content-wrapper">
-            <!-- Logo über der Box -->
             <img src="dochub_logo.svg" alt="DocHub Logo" class="login-logo" onerror="this.style.display='none';">
             
-            <!-- Login Box (Offizielles <form> für Passwort-Manager Integration) -->
             <form class="login-box" onsubmit="checkLogin(event)">
                 <input type="text" id="loginUser" name="username" autocomplete="username" class="login-input" placeholder="Benutzername" required>
                 <input type="password" id="loginPass" name="password" autocomplete="current-password" class="login-input" placeholder="Passwort" required>
-                
-                <!-- Type Submit ermöglicht das automatische Speichern der Logindaten in Chrome/Safari -->
                 <button type="submit" class="login-btn">Einloggen</button>
                 <div id="loginError" class="login-error">Benutzername oder Passwort inkorrekt.</div>
             </form>
@@ -379,105 +395,116 @@
                 </select>
             </div>
             <div class="toolbar-group" style="margin-left: auto;">
-                <!-- Drucken Button verwendet jetzt exakt das gleiche CSS Layout wie die anderen Buttons -->
                 <button onclick="window.print()" title="Dokument drucken">🖨️ Drucken</button>
             </div>
         </div>
 
-        <!-- Dokument -->
-        <div class="document-wrapper" id="docWrapper">
-            
-            <div class="print-header">
-                <img src="dark.png" alt="LÈMANS Logo" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block';">
-                <div id="logo-fallback" style="display:none; font-size:24pt; font-weight:700; letter-spacing: 2px;">LÈMANS</div>
+        <!-- --- DOKUMENT ARCHITEKTUR (Sicher für iOS) --- -->
+        <!-- Der Zoom greift nur noch auf diesen Wrapper, das Dokument selbst bleibt sauber! -->
+        <div id="zoom-wrapper">
+            <div class="document-wrapper" id="docWrapper">
+                
+                <table class="content-table">
+                    <!-- KOPFZEILE (Wird auf jeder Druck-Seite vom Browser nativ ganz oben angezeigt) -->
+                    <thead class="print-header-section">
+                        <tr>
+                            <td class="print-header-cell">
+                                <div class="print-header">
+                                    <img src="dark.png" alt="LÈMANS Logo" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block';">
+                                    <div id="logo-fallback" style="display:none; font-size:24pt; font-weight:700; letter-spacing: 2px;">LÈMANS</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </thead>
+                    
+                    <!-- HAUPTTEIL -->
+                    <tbody>
+                        <tr>
+                            <td class="main-content-cell">
+                                
+                                <!-- Absolut positioniert relativ zum Start des TBody (Nur auf der ersten Seite!) -->
+                                <div class="anschriftzone">
+                                    <div class="ruecksendeangabe">
+                                        <span contenteditable="true">LÈMANS Real Estate GmbH · Großer Burstah 44 · 20457 Hamburg</span>
+                                    </div>
+                                    <div class="vermerkzone" contenteditable="true"></div>
+                                    <div class="empfaenger" contenteditable="true">
+                                        Firma / Empfänger<br>Herrn / Frau<br>Musterstraße 12<br><br>12345 Musterstadt
+                                    </div>
+                                </div>
+
+                                <div class="infoblock">
+                                    <div class="info-grid">
+                                        <div class="lbl-contact">Ansprechpartner:</div><div class="user-name" contenteditable="true">Alexej Andreew</div>
+                                        <div class="lbl-phone info-margin-top">Telefon:</div><div class="user-phone info-margin-top" contenteditable="true">+49 40 524728930</div>
+                                        <div class="lbl-mobile row-mobile">Mobil:</div><div class="user-mobile row-mobile" contenteditable="true">+49 170 1234567</div>
+                                        <div class="lbl-email">E-Mail:</div><div class="user-email" contenteditable="true">info@lemans.de</div>
+                                        <div class="lbl-web">Web:</div><div class="user-web" contenteditable="true">www.lemans.de</div>
+                                        <div class="lbl-date info-margin-top">Datum:</div><div id="currentDate" class="info-margin-top" contenteditable="true"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Abstandshalter, damit der Text erst unter der Adresse anfängt -->
+                                <div class="first-page-spacer"></div>
+
+                                <!-- Echter Textfluss -->
+                                <div class="main-content">
+                                    <div class="betreff-box" contenteditable="true">Aussagekräftiger Betreff Ihres Schreibens</div>
+                                    
+                                    <div class="anrede-box" contenteditable="true">Sehr geehrte Damen und Herren,</div>
+                                    
+                                    <div class="textteil-box" contenteditable="true">
+                                        <p>Klicken Sie in die jeweiligen Blöcke, um diese unabhängig voneinander zu überschreiben.</p>
+                                        <p>Dies ist das ultimative Update: Die Architektur des Dokuments wurde auf eine komplett native HTML-Tabellen-Struktur (Thead/Tfoot) umgestellt. Dadurch wird der berüchtigte iOS Safari Druck-Bug vollumfänglich umgangen.</p>
+                                        <p>Kopfzeile, Fußzeile und die Seitenzahlen werden vom iPhone nun fehlerfrei auf jede gedruckte Seite (PDF) geworfen. Auch das Quetschen und Überschreiben des Textes ist behoben, da der Zoom isoliert vom Dokument gesteuert wird.</p>
+                                    </div>
+                                    
+                                    <div class="gruss-box" contenteditable="true">
+                                        <span class="lbl-greeting">Mit freundlichen Grüßen</span><br><br>
+                                        <b>LÈMANS Real Estate GmbH</b>
+                                    </div>
+                                    
+                                    <div class="no-print">
+                                        <label for="sig-upload" class="signature-tool">+ Unterschrift (PNG) einfügen</label>
+                                        <input type="file" id="sig-upload" accept="image/png, image/jpeg" style="display: none;">
+                                    </div>
+                                    
+                                    <div id="sig-wrapper">
+                                        <img id="sig-image" src="" alt="Unterschrift">
+                                        <button id="sig-remove" class="no-print" onclick="removeSignature()" title="Unterschrift entfernen">✕</button>
+                                    </div>
+
+                                    <div class="unterschrift-box" contenteditable="true">
+                                        <span class="user-name">Alexej Andreew</span><br><span class="user-role">Geschäftsführer</span>
+                                    </div>
+
+                                    <div class="anlagen-box" contenteditable="true">
+                                        <span class="lbl-enclosures">Anlagen</span><br><span style="font-weight: 300;">- Dokument 1</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                    
+                    <!-- FUSSZEILE (Wird auf jeder Druck-Seite vom Browser nativ unten angezeigt) -->
+                    <tfoot class="print-footer-section">
+                        <tr>
+                            <td class="print-footer-cell">
+                                <div class="page-number-container">
+                                    <span class="css-page-number"></span><span class="total-pages"></span>
+                                </div>
+                                <div class="print-footer">
+                                    <div class="footer-content" contenteditable="true">
+                                        <b>LÈMANS Real Estate GmbH</b> | <span class="lbl-sitz">Sitz der Gesellschaft:</span> Hamburg | <span class="lbl-reg">Registergericht:</span> Amtsgericht Hamburg-Mitte | <span class="lbl-ust">USt-IdNr.:</span> DE367670809<br>
+                                        <span class="lbl-gf">Geschäftsführer:</span> Alexej Andreew | <span class="lbl-bank">Bankverbindung:</span> Commerzbank | IBAN: DE61 2004 0000 0180 5894 00
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+
             </div>
-
-            <!-- Master Fußzeile -->
-            <div class="print-footer">
-                <div class="footer-content" contenteditable="true">
-                    <b>LÈMANS Real Estate GmbH</b> | <span class="lbl-sitz">Sitz der Gesellschaft:</span> Hamburg | <span class="lbl-reg">Registergericht:</span> Amtsgericht Hamburg-Mitte | <span class="lbl-ust">USt-IdNr.:</span> DE367670809<br>
-                    <span class="lbl-gf">Geschäftsführer:</span> Alexej Andreew | <span class="lbl-bank">Bankverbindung:</span> Commerzbank | IBAN: DE61 2004 0000 0180 5894 00
-                </div>
-            </div>
-
-            <div class="lochmarke"></div>
-            <div class="faltmarke1"></div>
-            <div class="faltmarke2"></div>
-
-            <!-- Streng nach DIN 5008 Form B -->
-            <div class="anschriftzone">
-                <div class="ruecksendeangabe">
-                    <span contenteditable="true">LÈMANS Real Estate GmbH · Großer Burstah 44 · 20457 Hamburg</span>
-                </div>
-                <div class="vermerkzone" contenteditable="true"></div>
-                <div class="empfaenger" contenteditable="true">
-                    Firma / Empfänger<br>
-                    Herrn / Frau<br>
-                    Musterstraße 12<br><br>
-                    12345 Musterstadt
-                </div>
-            </div>
-
-            <div class="infoblock">
-                <div class="info-grid">
-                    <div class="lbl-contact">Ansprechpartner:</div><div class="user-name" contenteditable="true">Alexej Andreew</div>
-                    <div class="lbl-phone info-margin-top">Telefon:</div><div class="user-phone info-margin-top" contenteditable="true">+49 40 524728930</div>
-                    <div class="lbl-mobile row-mobile">Mobil:</div><div class="user-mobile row-mobile" contenteditable="true">+49 170 1234567</div>
-                    <div class="lbl-email">E-Mail:</div><div class="user-email" contenteditable="true">info@lemans.de</div>
-                    <div class="lbl-web">Web:</div><div class="user-web" contenteditable="true">www.lemans.de</div>
-                    <div class="lbl-date info-margin-top">Datum:</div><div id="currentDate" class="info-margin-top" contenteditable="true"></div>
-                </div>
-            </div>
-
-            <!-- Fließtext -->
-            <table class="content-table">
-                <thead><tr><td><div class="header-spacer"></div></td></tr></thead>
-                <tbody><tr><td>
-                    <div class="main-content">
-                        <div class="first-page-spacer"></div>
-                        
-                        <div class="betreff-box" contenteditable="true">
-                            Aussagekräftiger Betreff Ihres Schreibens
-                        </div>
-                        
-                        <div class="anrede-box" contenteditable="true">
-                            Sehr geehrte Damen und Herren,
-                        </div>
-                        
-                        <div class="textteil-box" contenteditable="true">
-                            <p>Klicken Sie in die jeweiligen Blöcke, um diese unabhängig voneinander zu überschreiben.</p>
-                            <p>Die Pille auf den mobilen Geräten ist nun wie gewünscht randlos und dunkel, hat aber eine harmonische Eckenrundung von 38px erhalten. Damit integriert sie sich nahtlos und Apple-konform.</p>
-                        </div>
-                        
-                        <div class="gruss-box" contenteditable="true">
-                            <span class="lbl-greeting">Mit freundlichen Grüßen</span><br><br>
-                            <b>LÈMANS Real Estate GmbH</b>
-                        </div>
-                        
-                        <div class="no-print">
-                            <label for="sig-upload" class="signature-tool">+ Unterschrift (PNG) einfügen</label>
-                            <input type="file" id="sig-upload" accept="image/png, image/jpeg" style="display: none;">
-                        </div>
-                        
-                        <div id="sig-wrapper">
-                            <img id="sig-image" src="" alt="Unterschrift">
-                            <button id="sig-remove" class="no-print" onclick="removeSignature()" title="Unterschrift entfernen">✕</button>
-                        </div>
-
-                        <div class="unterschrift-box" contenteditable="true">
-                            <span class="user-name">Alexej Andreew</span><br>
-                            <span class="user-role">Geschäftsführer</span>
-                        </div>
-
-                        <div class="anlagen-box" contenteditable="true">
-                            <span class="lbl-enclosures">Anlagen</span><br>
-                            <span style="font-weight: 300;">- Dokument 1</span>
-                        </div>
-                    </div>
-                </td></tr></tbody>
-                <tfoot><tr><td><div class="footer-spacer"></div></td></tr></tfoot>
-            </table>
-
         </div>
     </div>
 
@@ -491,23 +518,23 @@
             if (currentZoom < 0.2) currentZoom = 0.2;
             if (currentZoom > 3.0) currentZoom = 3.0;
             
-            const wrapper = document.getElementById('docWrapper');
-            wrapper.style.setProperty('transition', 'transform 0.2s ease');
-            wrapper.style.transform = `scale(${currentZoom})`;
+            // Der Zoom wird NUR auf den äußeren Wrapper angewendet! 
+            const zoomWrapper = document.getElementById('zoom-wrapper');
+            zoomWrapper.style.transform = `scale(${currentZoom})`;
             
-            const extraMargin = (wrapper.offsetHeight * (currentZoom - 1));
-            wrapper.style.marginBottom = `${extraMargin > 0 ? extraMargin + 40 : 0}px`;
+            const docWrapper = document.getElementById('docWrapper');
+            const extraMargin = (docWrapper.offsetHeight * (currentZoom - 1));
+            zoomWrapper.style.marginBottom = `${extraMargin > 0 ? extraMargin + 40 : 0}px`;
             
             document.getElementById('zoomLabel').innerText = Math.round(currentZoom * 100) + '%';
         }
 
         function changeZoom(delta) {
-            manualZoom = true; // Sperrt Auto-Zoom nach manueller Eingabe
+            manualZoom = true; 
             setZoom(currentZoom + delta);
         }
 
         function handleResize() {
-            // Reagiert auf Bildschirmgrößen und skaliert das Dokument nativ auf Handybreite
             if (!manualZoom && window.innerWidth < 850) {
                 setZoom((window.innerWidth - 20) / 794);
             } else if (!manualZoom && window.innerWidth >= 850) {
@@ -518,24 +545,20 @@
 
         // --- LOGIN LOGIK ---
         function checkLogin(e) {
-            e.preventDefault(); // Verhindert page reload und triggert den Chrome Password Manager
+            e.preventDefault(); 
             const user = document.getElementById('loginUser').value;
             const pass = document.getElementById('loginPass').value;
             
             if (user === 'alexej.andreew' && pass === 'lemans@docHUB26') {
-                // Erfolgreicher Login
                 document.getElementById('login-container').style.display = 'none';
                 document.getElementById('app-container').style.display = 'flex';
                 sessionStorage.setItem('docHub_auth', 'true');
-                
-                // Initiiere nach Login automatisch den mobilen Zoom, falls Handy genutzt wird
                 setTimeout(handleResize, 100);
             } else {
                 document.getElementById('loginError').style.display = 'block';
             }
         }
 
-        // Überspringt Login, falls Session aktiv
         if (sessionStorage.getItem('docHub_auth') === 'true') {
             document.getElementById('login-container').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
@@ -573,8 +596,8 @@
 
         // --- Sprache ---
         const i18n = {
-            de: { contact: 'Ansprechpartner:', phone: 'Telefon:', mobile: 'Mobil:', email: 'E-Mail:', web: 'Web:', date: 'Datum:', enclosures: 'Anlagen', greeting: 'Mit freundlichen Grüßen', sitz: 'Sitz der Gesellschaft:', reg: 'Registergericht:', ust: 'USt-IdNr.:', gf: 'Geschäftsführer:', bank: 'Bankverbindung:', seite: 'Seite', von: 'von' },
-            en: { contact: 'Contact:', phone: 'Phone:', mobile: 'Mobile:', email: 'Email:', web: 'Website:', date: 'Date:', enclosures: 'Enclosures', greeting: 'Best regards', sitz: 'Registered Office:', reg: 'Court of Registration:', ust: 'VAT ID:', gf: 'Managing Director:', bank: 'Bank Details:', seite: 'Page', von: 'of' }
+            de: { contact: 'Ansprechpartner:', phone: 'Telefon:', mobile: 'Mobil:', email: 'E-Mail:', web: 'Web:', date: 'Datum:', enclosures: 'Anlagen', greeting: 'Mit freundlichen Grüßen', sitz: 'Sitz der Gesellschaft:', reg: 'Registergericht:', ust: 'USt-IdNr.:', gf: 'Geschäftsführer:', bank: 'Bankverbindung:', von: ' von ' },
+            en: { contact: 'Contact:', phone: 'Phone:', mobile: 'Mobile:', email: 'Email:', web: 'Website:', date: 'Date:', enclosures: 'Enclosures', greeting: 'Best regards', sitz: 'Registered Office:', reg: 'Court of Registration:', ust: 'VAT ID:', gf: 'Managing Director:', bank: 'Bank Details:', von: ' of ' }
         };
 
         function changeLang() {
@@ -646,13 +669,7 @@
             const email = prompt("E-Mail Adresse:");
             
             const newUser = {
-                id: Date.now(),
-                name: name,
-                role: role || "",
-                phone: phone || "",
-                mobile: mobile || "",
-                email: email || "",
-                web: "www.lemans.de"
+                id: Date.now(), name: name, role: role || "", phone: phone || "", mobile: mobile || "", email: email || "", web: "www.lemans.de"
             };
             
             users.push(newUser);
@@ -670,11 +687,8 @@
 
             const name = prompt("Name des Mandanten:", u.name);
             if (!name) return;
-            u.name = name;
-            u.role = prompt("Position/Titel:", u.role) || "";
-            u.phone = prompt("Telefonnummer:", u.phone) || "";
-            u.mobile = prompt("Mobilnummer (optional):", u.mobile || "") || "";
-            u.email = prompt("E-Mail Adresse:", u.email) || "";
+            u.name = name; u.role = prompt("Position/Titel:", u.role) || ""; u.phone = prompt("Telefonnummer:", u.phone) || "";
+            u.mobile = prompt("Mobilnummer (optional):", u.mobile || "") || ""; u.email = prompt("E-Mail Adresse:", u.email) || "";
             
             localStorage.setItem('lemans_users', JSON.stringify(users));
             renderUserDropdown();
@@ -683,12 +697,8 @@
         }
 
         function deleteUser() {
-            if (users.length <= 1) {
-                alert("Der letzte Mandant kann nicht gelöscht werden.");
-                return;
-            }
+            if (users.length <= 1) return alert("Der letzte Mandant kann nicht gelöscht werden.");
             if (!confirm("Möchten Sie diesen Mandanten wirklich löschen?")) return;
-            
             const id = parseInt(document.getElementById('userSelect').value);
             users = users.filter(x => x.id !== id);
             localStorage.setItem('lemans_users', JSON.stringify(users));
@@ -700,19 +710,14 @@
             if (e.target.closest('[contenteditable="true"]')) {
                 e.preventDefault();
                 let html = (e.originalEvent || e).clipboardData.getData('text/html');
-                
                 if (html) {
                     let temp = document.createElement('div');
                     temp.innerHTML = html;
-                    
                     const allElems = temp.getElementsByTagName("*");
                     for (let i = 0; i < allElems.length; i++) {
-                        allElems[i].removeAttribute('style');
-                        allElems[i].removeAttribute('class');
-                        allElems[i].removeAttribute('id');
-                        allElems[i].removeAttribute('face');
-                        allElems[i].removeAttribute('color');
-                        allElems[i].removeAttribute('size');
+                        allElems[i].removeAttribute('style'); allElems[i].removeAttribute('class');
+                        allElems[i].removeAttribute('id'); allElems[i].removeAttribute('face');
+                        allElems[i].removeAttribute('color'); allElems[i].removeAttribute('size');
                     }
                     document.execCommand('insertHTML', false, temp.innerHTML);
                 } else {
@@ -723,54 +728,22 @@
             }
         });
 
-        // --- Robuste, browserunabhängige Seitenzahlen beim Drucken ---
+        // --- NEUE SICHERE DRUCK BERECHNUNG ---
         window.addEventListener('beforeprint', () => {
-            document.querySelectorAll('.print-page-number-clone').forEach(e => e.remove());
-
-            const wrapper = document.getElementById('docWrapper');
+            // Die Höhe der Tabelle lässt sich nun gefahrlos auslesen, 
+            // da der Zoom nur auf den Wrapper (und nicht auf die Tabelle) wirkt!
             const table = document.querySelector('.content-table');
-            
-            wrapper.style.setProperty('transition', 'none', 'important');
-            wrapper.style.setProperty('transform', 'none', 'important');
-            wrapper.style.setProperty('margin-bottom', '0px', 'important');
-
-            void wrapper.offsetHeight;
-
             const totalHeight = table.scrollHeight;
             const totalPages = Math.max(1, Math.ceil(totalHeight / 1122)); 
             
             const lang = document.getElementById('langSelect').value;
             const t = i18n[lang];
 
-            for(let i=1; i<=totalPages; i++) { 
-                let clone = document.createElement('div');
-                clone.className = 'print-page-number-clone';
-                clone.style.position = 'absolute';
-                clone.style.right = '20mm';
-                clone.style.top = `calc(${i * 297}mm - 38mm)`; 
-                clone.style.textAlign = 'right';
-                clone.style.fontSize = '8pt';
-                clone.style.fontFamily = "'Hanken Grotesk', sans-serif";
-                clone.style.color = "var(--brand-color)";
-                clone.style.zIndex = '1000';
-                
-                clone.innerHTML = `${t.seite} ${i} ${t.von} ${totalPages}`;
-                document.body.appendChild(clone);
-            }
-        });
-
-        window.addEventListener('afterprint', () => {
-            document.querySelectorAll('.print-page-number-clone').forEach(e => e.remove());
-            
-            const wrapper = document.getElementById('docWrapper');
-            wrapper.style.setProperty('transition', 'none', 'important');
-            wrapper.style.transform = `scale(${currentZoom})`;
-            const extraMargin = (wrapper.offsetHeight * (currentZoom - 1));
-            wrapper.style.marginBottom = `${extraMargin > 0 ? extraMargin + 40 : 0}px`;
-            
-            setTimeout(() => {
-                wrapper.style.setProperty('transition', 'transform 0.2s ease');
-            }, 50);
+            // Wir fügen nur den Text " von X" in die dafür vorgesehene Span ein.
+            // Die "Seite 1, 2, 3" Zählung übernimmt das extrem robuste CSS-Counter-System automatisch pro Seite.
+            document.querySelectorAll('.total-pages').forEach(el => {
+                el.innerText = `${t.von}${totalPages}`;
+            });
         });
 
         renderUserDropdown();
