@@ -37,11 +37,11 @@
             font-weight: 300; color: var(--brand-color);
             background-color: var(--brand-color); 
             overflow-x: hidden;
-            counter-reset: print-page;
         }
 
         b, strong { font-weight: 700; }
         
+        /* Überschreibt hartnäckige iOS Auto-Links */
         a, a[href^="tel"], a[href^="mailto"] { color: inherit !important; text-decoration: none !important; }
 
         /* --- LOGIN SCREEN (ATLAS DESIGN) --- */
@@ -128,7 +128,7 @@
             box-sizing: border-box; background-color: var(--dash-bg); 
         }
         
-        /* --- Toolbar (Analog zum Dashboard Header) --- */
+        /* --- Toolbar --- */
         .toolbar {
             position: fixed; top: 0; left: 0;
             width: 100%; background: var(--brand-color); padding: 15px 40px; border-radius: 0;
@@ -144,7 +144,7 @@
             border-radius: 4px; font-family: 'Hanken Grotesk', sans-serif; font-weight: 700; font-size: 13px;
             cursor: pointer; box-sizing: border-box; vertical-align: middle; display: inline-flex; align-items: center; justify-content: center;
             transition: background 0.2s;
-            white-space: nowrap; /* Verhindert das Übereinanderrutschen von Text und Pfeil */
+            white-space: nowrap; 
         }
         .toolbar select {
             padding: 0 40px 0 16px; appearance: none; -webkit-appearance: none; -moz-appearance: none;
@@ -171,7 +171,7 @@
             }
             .toolbar::-webkit-scrollbar { display: none; }
             .toolbar-group { flex-shrink: 0; }
-            .toolbar-logo { display: block; } /* Logo bleibt auch mobil im Header sichtbar */
+            .toolbar-logo { display: block; } 
             .toolbar select, .toolbar button { height: 44px; font-size: 15px; border-radius: 8px; padding: 0 18px; }
             .toolbar select { padding-right: 45px; background-position: right 18px center; }
             .print-btn-group { margin-left: 0; }
@@ -183,7 +183,7 @@
         .editor-paper {
             background-color: white; width: 210mm; position: relative;
             box-shadow: 0 10px 30px rgba(0,0,0,0.15); box-sizing: border-box; 
-            min-height: 297mm; padding-bottom: 40mm;
+            min-height: 297mm; padding-bottom: 40mm; /* Puffer damit Text nie in die visuelle Fußzeile rutscht */
         }
 
         [contenteditable="true"] { outline: none; border-radius: 3px; transition: background-color 0.2s; padding: 2px; margin: -2px; }
@@ -191,32 +191,65 @@
         [contenteditable="true"]:focus { background-color: #fff; box-shadow: 0 0 0 2px #3b82f6; }
         [contenteditable="true"] * { font-family: 'Hanken Grotesk', sans-serif !important; color: var(--brand-color) !important; background-color: transparent !important; }
 
-        .e-header { position: absolute; top: 12mm; left: 0; width: 100%; text-align: center; }
+        /* Faltmarken sind nur im Druck (und PDF) sichtbar! */
+        .print-only { display: none; }
+        
+        .faltmarke { position: absolute; left: 0; border-top: 0.5pt solid var(--brand-color); }
+        .lochmarke { top: 148.5mm; width: 5mm; }
+        .falt1 { top: 105mm; width: 3mm; }
+        .falt2 { top: 210mm; width: 3mm; }
+
+        /* HEADER, LOGO & ANSCHRIFT (Editor) */
+        /* FIX: Befindet sich jetzt absolut positioniert GANZ OBEN im Papier (außerhalb des table-bodys) */
+        .e-header { position: absolute; top: 12mm; left: 0; width: 100%; text-align: center; z-index: 10; }
         .e-header img { max-width: 150mm; max-height: 25mm; object-fit: contain; }
+
+        /* NATIVE TABELLEN STRUKTUR (Löst alle Umbruch-Probleme nativ) */
+        .main-document-table { width: 100%; border-collapse: collapse; border-spacing: 0; }
+        .main-document-table td { padding: 0; border: none; vertical-align: top; }
+
+        /* THEAD - Reserviert exakt 45mm auf jeder Seite */
+        .header-space { height: 45mm; position: relative; }
+
+        /* TBODY - Container */
+        .tbody-wrapper { position: relative; width: 100%; height: 100%; }
+
+        .anschriftzone { position: absolute; top: 0mm; left: 20mm; width: 85mm; font-size: 11pt; line-height: 1.2; }
+        .ruecksendeangabe { font-size: 8pt; margin-bottom: 5mm; }
         
-        .e-anschrift { position: absolute; left: 20mm; top: 45mm; width: 85mm; font-size: 11pt; line-height: 1.2; }
-        .e-rueck { font-size: 8pt; margin-bottom: 5mm; }
-        
-        .e-info { position: absolute; left: 125mm; top: 50mm; width: 75mm; font-size: 9.5pt; line-height: 1.4; }
-        .e-grid { display: grid; grid-template-columns: max-content 1fr; column-gap: 4mm; row-gap: 2px; }
-        .e-grid > div:nth-child(even) { text-align: left; }
+        .infoblock { position: absolute; top: 5mm; left: 125mm; width: 75mm; font-size: 9.5pt; line-height: 1.4; }
+        .info-grid { display: grid; grid-template-columns: max-content 1fr; column-gap: 4mm; row-gap: 2px; }
+        .info-grid > div:nth-child(even) { text-align: left; }
         .info-mt { margin-top: 4mm; }
         .no-wrap { white-space: nowrap; }
 
-        .e-content { padding-top: 105mm; padding-left: 25mm; padding-right: 20mm; font-size: 11pt; line-height: 1.3; }
+        /* Der Spacer drückt den Text exakt auf 105mm hinunter (45mm Thead + 60mm Spacer = 105mm) */
+        .text-spacer { height: 60mm; width: 100%; }
         
+        .content-flow { padding: 0 20mm 0 25mm; font-size: 11pt; line-height: 1.3; }
+        
+        /* ORIGINAL V3 ABSTÄNDE */
         .b-betreff { font-weight: 700; margin-bottom: 8.46mm; }
         .b-anrede { margin-bottom: 4.23mm; }
         .b-text { margin-bottom: 8.46mm; min-height: 20mm; }
         .b-text p { margin: 0 0 4.23mm 0; }
         .b-gruss { margin-bottom: 4.23mm; }
         .b-unterschrift { margin-bottom: 8.46mm; } 
-        .b-anlagen { font-weight: 700; margin-top: 10mm; margin-bottom: 20mm; }
+        
+        /* Anlagen - Sauber formatiert */
+        .b-anlagen { margin-top: 10mm; margin-bottom: 0; font-weight: 700; }
+        .b-anlagen span { font-weight: 300; }
 
-        .sig-tool { display: inline-block; padding: 12px 16px; background: #f1f5f9; border-radius: 8px; cursor: pointer; font-size: 10pt; font-weight: 700; margin-bottom: 4mm; border: 1px dashed #94a3b8; transition: all 0.2s; }
+        /* Signatur UI */
+        .sig-tool-container { margin-bottom: 4mm; }
+        .sig-tool { 
+            display: inline-block; padding: 12px 16px; background: #f1f5f9; border-radius: 8px; cursor: pointer; 
+            font-size: 10pt; font-weight: 700; border: 1px dashed #94a3b8; transition: all 0.2s; 
+        }
         .sig-tool:hover { background: #e2e8f0; }
         .sig-wrap { position: relative; display: none; width: fit-content; margin-top: 4.23mm; margin-bottom: 4.23mm; }
         .sig-wrap img { max-height: 22mm; display: block; }
+        
         .sig-rem { 
             position: absolute; top: -8px; right: -12px; background: #cbd5e1; color: #0f1822; border: none; 
             border-radius: 50%; width: 24px; height: 24px; font-size: 11px; font-weight: bold; cursor: pointer; 
@@ -225,35 +258,54 @@
         }
         .sig-rem:hover { background: #ef4444; color: white; transform: scale(1.1); }
 
-        .e-footer { position: absolute; bottom: 15mm; left: 25mm; right: 20mm; border-top: 0.5px solid var(--brand-color); padding-top: 4mm; font-size: 7.5pt; line-height: 1.3; text-align: center; }
+        /* TFOOT - Reserviert 35mm harten Sicherheitsabstand vor dem Seitenende im Druck */
+        .footer-space { height: 35mm; }
 
-        /* --- DIE STRIKTE NATIVE DRUCK-ENGINE --- */
-        #print-container { display: none; }
+        /* EDITOR FUSSZEILE */
+        .e-footer { 
+            position: absolute; bottom: 15mm; left: 25mm; right: 20mm; 
+            border-top: 0.5pt solid var(--brand-color); 
+            padding-top: 4mm; text-align: center; font-size: 7.5pt; line-height: 1.3; 
+        }
         
-        .e-header img, .e-header svg {
+        /* --- GESCHÜTZTE KLASSEN FÜR DEN DRUCK-INJECTOR --- */
+        
+        /* Blockiert Riesen-Logos beim injizierten Druck restlos */
+        .injected-header img, .injected-header svg {
             max-width: 150mm !important;
             max-height: 25mm !important;
             object-fit: contain !important;
             display: inline-block !important;
         }
-        
+
+        /* --- STRIKTE DRUCK EINSTELLUNGEN --- */
         @media print {
             @page { size: A4; margin: 0 !important; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             
+            /* Eliminierung von leeren 2. Seiten (Keine erzwungenen Mindesthöhen, CSS steuert alles nativ!) */
             body, html { background: white !important; margin: 0 !important; padding: 0 !important; width: 210mm !important; height: auto !important; overflow: visible !important; }
             
+            /* UI Elemente und Editor-Fußzeile restlos ausblenden */
             .toolbar, #login-container, #dashboard-container, .no-print, .e-footer { display: none !important; }
             #app-container { display: block !important; padding: 0 !important; background: white !important; }
             
             #zoom-wrapper { transform: none !important; margin: 0 !important; width: 210mm !important; }
-            .editor-paper { box-shadow: none !important; margin: 0 !important; background-image: none !important; padding-bottom: 0 !important;}
             
+            /* Der Editor Container schrumpft auf den perfekten Platz -> Keine extra Seite! */
+            .editor-paper { box-shadow: none !important; margin: 0 !important; padding-bottom: 0 !important; min-height: 0 !important; }
+            
+            /* Die Original Kopfzeile ausblenden, da das Script sie sicher als Stempel auf jede Seite setzt */
             .e-header { display: none !important; } 
             
-            [contenteditable] { background: transparent !important; background-color: transparent !important; border: none !important; box-shadow: none !important; -webkit-appearance: none !important; }
+            [contenteditable] { background: transparent !important; border: none !important; box-shadow: none !important; outline: none !important; -webkit-appearance: none !important; }
             
-            p, .textteil-box, .b-gruss { break-inside: auto !important; page-break-inside: auto !important; orphans: 2; widows: 2; }
+            /* Die native Print-Engine für fehlerfreie Umbrüche */
+            thead { display: table-header-group; }
+            tfoot { display: table-footer-group; }
+            
+            /* Safari-Schutz gegen zerschnittene Textblöcke */
+            p, div { break-inside: auto; page-break-inside: auto; orphans: 2; widows: 2; }
             .b-betreff, .b-anrede, .b-unterschrift, .b-anlagen { break-inside: avoid; page-break-inside: avoid; }
         }
     </style>
@@ -296,7 +348,7 @@
                 <div class="dash-card" onclick="openEditor()">
                     <div class="dash-card-icon">📄</div>
                     <div class="dash-card-title">Allgemeines Anschreiben</div>
-                    <div class="dash-card-desc">Standard Geschäftsbrief nach DIN 5008 Form B. Mit automatischer Paginierung und fehlerfreiem PDF-Export.</div>
+                    <div class="dash-card-desc">Standard Geschäftsbrief nach DIN 5008 Form B. Fehlerfreier PDF-Export mit nativer Paginierung.</div>
                 </div>
                 <div class="dash-card disabled">
                     <div class="dash-card-icon">📊</div>
@@ -315,7 +367,6 @@
     <!-- --- HAUPT APP (Editor) --- -->
     <div id="app-container">
         
-        <!-- Toolbar (Jetzt als Header oben) -->
         <div class="toolbar no-print">
             <img src="dochub_logo.svg" alt="DocHub" class="toolbar-logo" onerror="this.style.display='none';">
             <button onclick="closeEditor()" title="Zurück zum Dashboard">⬅ Dashboard</button>
@@ -374,75 +425,100 @@
                 </select>
             </div>
             <div class="toolbar-group print-btn-group">
-                <button onclick="window.print()" title="Dokument als PDF exportieren">🖨️ Drucken / PDF</button>
+                <button onclick="triggerNativePrint()" title="Dokument als PDF exportieren" style="background: #e2e8f0; color: #0f1822;">🖨️ Drucken / PDF</button>
             </div>
         </div>
 
-        <!-- --- EDITOR DOKUMENT --- -->
         <div id="zoom-wrapper">
             <div class="editor-paper" id="docWrapper">
                 
-                <div class="e-header" id="data-header">
+                <!-- FIX: Die Editor Kopfzeile liegt jetzt absolut geschützt ganz oben im Blatt -->
+                <div class="e-header no-print" id="data-header">
                     <img src="dark.png" alt="LÈMANS Logo" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block';">
                     <div id="logo-fallback" style="display:none; font-size:24pt; font-weight:700; letter-spacing: 2px;">LÈMANS</div>
                 </div>
 
-                <div class="e-anschrift" id="data-anschrift">
-                    <div class="e-rueck" contenteditable="true">LÈMANS Real Estate GmbH · Großer Burstah 44 · 20457 Hamburg</div>
-                    <div class="vermerkzone" contenteditable="true"></div>
-                    <div class="empfaenger" contenteditable="true">
-                        Firma / Empfänger<br>Herrn / Frau<br>Musterstraße 12<br><br>12345 Musterstadt
-                    </div>
-                </div>
+                <table class="main-document-table">
+                    <!-- Reserviert 45mm Platz auf JEDER Seite -->
+                    <thead>
+                        <tr><td><div class="header-space"></div></td></tr>
+                    </thead>
+                    
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="tbody-wrapper">
+                                    
+                                    <div class="anschriftzone" id="data-anschrift">
+                                        <div class="ruecksendeangabe" contenteditable="true">LÈMANS Real Estate GmbH · Großer Burstah 44 · 20457 Hamburg</div>
+                                        <div class="vermerkzone" contenteditable="true"></div>
+                                        <div class="empfaenger" contenteditable="true">
+                                            Firma / Empfänger<br>Herrn / Frau<br>Musterstraße 12<br><br>12345 Musterstadt
+                                        </div>
+                                    </div>
 
-                <div class="e-info" id="data-info">
-                    <div class="e-grid">
-                        <div class="lbl-contact">Ansprechpartner:</div><div class="user-name" contenteditable="true">Alexej Andreew</div>
-                        <div class="lbl-phone info-mt">Telefon:</div><div class="user-phone info-mt no-wrap" contenteditable="true">+49 40 524728930</div>
-                        <div class="lbl-mobile row-mobile">Mobil:</div><div class="user-mobile row-mobile no-wrap" contenteditable="true">+49 170 1234567</div>
-                        <div class="lbl-email">E-Mail:</div><div class="user-email no-wrap" contenteditable="true">info@lemans.de</div>
-                        <div class="lbl-web">Web:</div><div class="user-web no-wrap" contenteditable="true">www.lemans.de</div>
-                        <div class="lbl-date info-mt">Datum:</div><div id="currentDate" class="info-mt" contenteditable="true"></div>
-                    </div>
-                </div>
+                                    <div class="infoblock" id="data-info">
+                                        <div class="info-grid">
+                                            <div class="lbl-contact">Ansprechpartner:</div><div class="user-name" contenteditable="true">Alexej Andreew</div>
+                                            <div class="lbl-phone info-mt">Telefon:</div><div class="user-phone info-mt no-wrap" contenteditable="true">+49 40 524728930</div>
+                                            <div class="lbl-mobile row-mobile">Mobil:</div><div class="user-mobile row-mobile no-wrap" contenteditable="true">+49 170 1234567</div>
+                                            <div class="lbl-email">E-Mail:</div><div class="user-email no-wrap" contenteditable="true">info@lemans.de</div>
+                                            <div class="lbl-web">Web:</div><div class="user-web no-wrap" contenteditable="true">www.lemans.de</div>
+                                            <div class="lbl-date info-mt">Datum:</div><div id="currentDate" class="info-mt" contenteditable="true"></div>
+                                        </div>
+                                    </div>
 
-                <div class="e-content" id="data-content">
-                    <div class="b-betreff" contenteditable="true">Aussagekräftiger Betreff Ihres Schreibens</div>
-                    
-                    <div class="b-anrede" contenteditable="true">Sehr geehrte Damen und Herren,</div>
-                    
-                    <div class="b-text" contenteditable="true">
-                        <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
-                        <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis.</p>
-                        <p>At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
-                    </div>
-                    
-                    <div class="b-gruss" contenteditable="true">
-                        <span class="lbl-greeting">Mit freundlichen Grüßen</span><br><br>
-                        <b>LÈMANS Real Estate GmbH</b>
-                    </div>
-                    
-                    <div class="no-print">
-                        <label for="sig-upload" class="sig-tool">+ Unterschrift (PNG) einfügen</label>
-                        <input type="file" id="sig-upload" accept="image/png, image/jpeg" style="display: none;">
-                    </div>
-                    
-                    <div id="sig-wrapper" class="sig-wrap">
-                        <img id="sig-image" src="" alt="Unterschrift">
-                        <button id="sig-remove" class="sig-rem no-print" onclick="removeSignature()" title="Entfernen">✕</button>
-                    </div>
+                                    <!-- Schiebt den Text exakt in die DIN Flucht unter die Adresse -->
+                                    <div class="text-spacer"></div>
 
-                    <div class="b-unterschrift" contenteditable="true">
-                        <span class="user-name">Alexej Andreew</span><br>
-                        <span class="user-role">Geschäftsführer</span>
-                    </div>
+                                    <div class="content-flow" id="data-content">
+                                        <div class="b-betreff" contenteditable="true">Aussagekräftiger Betreff Ihres Schreibens</div>
+                                        
+                                        <div class="b-anrede" contenteditable="true">Sehr geehrte Damen und Herren,</div>
+                                        
+                                        <div class="b-text" contenteditable="true">
+                                            <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+                                            <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis.</p>
+                                        </div>
+                                        
+                                        <div class="b-gruss" contenteditable="true">
+                                            <span class="lbl-greeting">Mit freundlichen Grüßen</span><br><br>
+                                            <b>LÈMANS Real Estate GmbH</b>
+                                        </div>
+                                        
+                                        <div class="sig-tool-container no-print" contenteditable="false">
+                                            <label for="sig-upload" class="sig-tool">+ Unterschrift (PNG) einfügen</label>
+                                            <input type="file" id="sig-upload" accept="image/png, image/jpeg" style="display: none;">
+                                        </div>
+                                        
+                                        <div id="sig-wrapper" class="sig-wrap" contenteditable="false">
+                                            <img id="sig-image" src="" alt="Unterschrift">
+                                            <button id="sig-remove" class="sig-rem no-print" onclick="removeSignature()" title="Entfernen">✕</button>
+                                        </div>
 
-                    <div class="b-anlagen" contenteditable="true">
-                        <span class="lbl-enclosures" style="font-weight: 700;">Anlagen</span><br>
-                        <span style="font-weight: 300;">- Dokument 1</span>
-                    </div>
-                </div>
+                                        <div class="b-unterschrift" contenteditable="true">
+                                            <span class="user-name">Alexej Andreew</span><br>
+                                            <span class="user-role">Geschäftsführer</span>
+                                        </div>
+
+                                        <div class="b-anlagen" contenteditable="true">
+                                            <div class="lbl-enclosures">Anlagen</div>
+                                            <span style="font-weight: 300;">- Dokument 1</span>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                    
+                    <!-- TFOOT: Reserviert beim Drucken auf JEDER Seite knallhart 35mm Puffer! -->
+                    <tfoot>
+                        <tr><td><div class="footer-space"></div></td></tr>
+                    </tfoot>
+                </table>
                 
+                <!-- Fußzeile für Editor (Nur auf dem Bildschirm sichtbar) -->
                 <div class="e-footer no-print" id="data-footer" contenteditable="true">
                     <b>LÈMANS Real Estate GmbH</b> | <span class="lbl-sitz">Sitz der Gesellschaft:</span> Hamburg | <span class="lbl-reg">Registergericht:</span> Amtsgericht Hamburg-Mitte | <span class="lbl-ust">USt-IdNr.:</span> DE367670809<br>
                     <span class="lbl-gf">Geschäftsführer:</span> Alexej Andreew | <span class="lbl-bank">Bankverbindung:</span> Commerzbank | IBAN: DE61 2004 0000 0180 5894 00
@@ -453,27 +529,37 @@
     </div>
 
     <script>
+        // --- DER PRÄZISE DRUCK-INJECTOR ---
         function preparePrint() {
             const wrapper = document.getElementById('docWrapper');
+            const content = document.getElementById('data-content');
+            
             document.querySelectorAll('.injected-print-element').forEach(e => e.remove());
             
+            // Umrechnung von Millimeter in Pixel berechnen
             const mmNode = document.createElement('div');
             mmNode.style.height = '1000mm';
             document.body.appendChild(mmNode);
             const pxPerMm = mmNode.offsetHeight / 1000;
             document.body.removeChild(mmNode);
             
-            const a4HeightPx = 297 * pxPerMm;
-            const totalPages = Math.max(1, Math.ceil(wrapper.scrollHeight / a4HeightPx));
+            // DIE PERFEKTE BERECHNUNG: Wir messen das exakte Ende des geschriebenen Textes!
+            // 45mm (Thead) + 60mm Spacer + Content = Position des exakten Text-Endes.
+            const textEndPx = (45 * pxPerMm) + content.offsetTop + content.offsetHeight;
             
-            wrapper.style.height = `${totalPages * 297}mm`;
-            wrapper.style.overflow = 'hidden';
+            // Rechnet noch 35mm Platz für den Footer dazu.
+            const requiredTotalSpacePx = textEndPx + (35 * pxPerMm);
+            const a4Px = 297 * pxPerMm;
+            
+            // Berechnet exakte Seiten. Passt alles auf eine, bleibt es zwingend bei 1!
+            const totalPages = Math.max(1, Math.ceil(requiredTotalSpacePx / a4Px));
             
             const headerHtml = document.getElementById('data-header').innerHTML;
             const footerHtml = document.getElementById('data-footer').innerHTML;
             const lang = document.getElementById('langSelect').value;
             const t = i18n[lang];
             
+            // Stempelt die Elemente absolut fest auf jede berechnete Seite
             for(let i=1; i<=totalPages; i++) {
                 const pageLayer = document.createElement('div');
                 pageLayer.className = 'injected-print-element';
@@ -486,19 +572,22 @@
                 pageLayer.style.zIndex = '9000';
                 
                 pageLayer.innerHTML = `
-                    <div style="position: absolute; left: 0; top: 148.5mm; width: 5mm; border-top: 0.5px solid var(--brand-color);"></div>
-                    <div style="position: absolute; left: 0; top: 105mm; width: 3mm; border-top: 0.5px solid var(--brand-color);"></div>
-                    <div style="position: absolute; left: 0; top: 210mm; width: 3mm; border-top: 0.5px solid var(--brand-color);"></div>
+                    <!-- Faltmarken (0.5pt Haarlinie) -->
+                    <div style="position: absolute; left: 0; top: 148.5mm; width: 5mm; border-top: 0.5pt solid var(--brand-color);"></div>
+                    <div style="position: absolute; left: 0; top: 105mm; width: 3mm; border-top: 0.5pt solid var(--brand-color);"></div>
+                    <div style="position: absolute; left: 0; top: 210mm; width: 3mm; border-top: 0.5pt solid var(--brand-color);"></div>
                     
-                    <div class="e-header" style="position: absolute; top: 12mm; left: 0; width: 100%; text-align: center;">
+                    <!-- Die geschützte Klasse verhindert Riesen-Logos im Druck -->
+                    <div class="injected-header" style="position: absolute; top: 12mm; left: 0; width: 100%; text-align: center;">
                         ${headerHtml}
                     </div>
 
+                    <!-- Die Fußzeile sitzt unverrückbar bei 15mm von unten! Sie kann nie wieder verrutschen. -->
                     <div style="position: absolute; bottom: 15mm; left: 25mm; right: 20mm; background: white;">
                         <div style="text-align: right; font-size: 8pt; margin-bottom: 2mm; color: var(--brand-color); font-family: 'Hanken Grotesk', sans-serif;">
-                            ${t.seite} ${i} ${t.von} ${totalPages}
+                            ${t.seite} ${i}
                         </div>
-                        <div style="border-top: 0.5px solid var(--brand-color); padding-top: 4mm; font-size: 7.5pt; text-align: center; line-height: 1.3; color: var(--brand-color); font-family: 'Hanken Grotesk', sans-serif;">
+                        <div style="border-top: 0.5pt solid var(--brand-color); padding-top: 4mm; font-size: 7.5pt; text-align: center; line-height: 1.3; color: var(--brand-color); font-family: 'Hanken Grotesk', sans-serif;">
                             ${footerHtml}
                         </div>
                     </div>
@@ -508,20 +597,19 @@
         }
 
         function cleanupPrint() {
-            const wrapper = document.getElementById('docWrapper');
             document.querySelectorAll('.injected-print-element').forEach(e => e.remove());
-            wrapper.style.height = 'auto';
-            wrapper.style.overflow = 'visible';
         }
 
         window.addEventListener('beforeprint', preparePrint);
         window.addEventListener('afterprint', cleanupPrint);
 
 
+        // --- LOGIN LOGIK ---
         function checkLogin(e) {
             e.preventDefault(); 
-            const user = document.getElementById('loginUser').value;
-            const pass = document.getElementById('loginPass').value;
+            const user = document.getElementById('loginUser').value.trim().toLowerCase();
+            const pass = document.getElementById('loginPass').value.trim();
+            
             if (user === 'alexej.andreew' && pass === 'lemans@docHUB26') {
                 document.getElementById('login-container').style.display = 'none';
                 document.getElementById('dashboard-container').style.display = 'flex';
@@ -548,14 +636,24 @@
         function openEditor() {
             document.getElementById('dashboard-container').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
-            setTimeout(handleResize, 100);
+            setTimeout(() => { handleResize(); }, 100);
         }
 
         function closeEditor() {
             document.getElementById('app-container').style.display = 'none';
             document.getElementById('dashboard-container').style.display = 'flex';
         }
+        
+        function triggerNativePrint() {
+            setTimeout(() => {
+                const originalTitle = document.title;
+                document.title = "Geschaeftsbrief_LEMANS";
+                window.print();
+                document.title = originalTitle;
+            }, 100);
+        }
 
+        // --- ZOOM LOGIK ---
         let currentZoom = 1;
         let manualZoom = false;
 
@@ -577,19 +675,22 @@
         }
         window.addEventListener('resize', handleResize);
 
+        // --- DATUM ---
         function setDate() {
             const d = new Date();
             document.getElementById('currentDate').innerText = `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
         }
         setDate();
 
+        // --- UNTERSCHRIFTEN LOGIK ---
         document.getElementById('sig-upload').addEventListener('change', function(e) {
             if (e.target.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     document.getElementById('sig-image').src = event.target.result;
                     document.getElementById('sig-wrapper').style.display = 'inline-block';
-                    document.querySelector('.sig-tool').style.display = 'none'; 
+                    // Versteckt den Upload-Button komplett!
+                    document.querySelector('.sig-tool-container').style.display = 'none'; 
                 }
                 reader.readAsDataURL(e.target.files[0]);
             }
@@ -599,12 +700,13 @@
             document.getElementById('sig-upload').value = '';
             document.getElementById('sig-image').src = '';
             document.getElementById('sig-wrapper').style.display = 'none';
-            document.querySelector('.sig-tool').style.display = 'inline-block';
+            // Zeigt den Upload-Button wieder an!
+            document.querySelector('.sig-tool-container').style.display = 'block';
         }
 
         const i18n = {
-            de: { contact: 'Ansprechpartner:', phone: 'Telefon:', mobile: 'Mobil:', email: 'E-Mail:', web: 'Web:', date: 'Datum:', enclosures: 'Anlagen', greeting: 'Mit freundlichen Grüßen', sitz: 'Sitz der Gesellschaft:', reg: 'Registergericht:', ust: 'USt-IdNr.:', gf: 'Geschäftsführer:', bank: 'Bankverbindung:', seite: 'Seite ', von: ' von ' },
-            en: { contact: 'Contact:', phone: 'Phone:', mobile: 'Mobile:', email: 'Email:', web: 'Website:', date: 'Date:', enclosures: 'Attachments', greeting: 'Best regards', sitz: 'Registered Office:', reg: 'Court of Registration:', ust: 'VAT ID:', gf: 'Managing Director:', bank: 'Bank Details:', seite: 'Page ', von: ' of ' }
+            de: { contact: 'Ansprechpartner:', phone: 'Telefon:', mobile: 'Mobil:', email: 'E-Mail:', web: 'Web:', date: 'Datum:', enclosures: 'Anlagen', greeting: 'Mit freundlichen Grüßen', sitz: 'Sitz der Gesellschaft:', reg: 'Registergericht:', ust: 'USt-IdNr.:', gf: 'Geschäftsführer:', bank: 'Bankverbindung:', seite: 'Seite ' },
+            en: { contact: 'Contact:', phone: 'Phone:', mobile: 'Mobile:', email: 'Email:', web: 'Website:', date: 'Date:', enclosures: 'Attachments', greeting: 'Best regards', sitz: 'Registered Office:', reg: 'Court of Registration:', ust: 'VAT ID:', gf: 'Managing Director:', bank: 'Bank Details:', seite: 'Page ' }
         };
 
         function changeLang() {
